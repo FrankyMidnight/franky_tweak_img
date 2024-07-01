@@ -2,6 +2,7 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_keycode.h>
+#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_oldnames.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
@@ -23,6 +24,19 @@ SDL_Texture *button_save_tex;
 SDL_Texture *slider_tex;
 SDL_Texture *close_tex;
 
+
+SDL_FRect main_src_rect;
+SDL_FRect button_load_dst_rect;
+SDL_FRect button_save_dst_rect;
+SDL_FRect slider1_dst_rect;
+SDL_FRect slider2_dst_rect;
+SDL_FRect slider3_dst_rect;
+SDL_FRect slider4_dst_rect;
+SDL_FRect slider5_dst_rect;
+SDL_FRect close_dst_rect;
+
+SDL_FPoint mouse_pos;
+
 typedef struct 
 {
     int x;
@@ -37,7 +51,9 @@ void cleanup();
 
 void load_ui();
 void render_ui();
-
+void check_click(SDL_FPoint mouse_pos);
+void check_slide(SDL_FPoint mouse_pos, SDL_Event e);
+void move_slider1();
 
 int main(void)
 {
@@ -101,9 +117,12 @@ void input()
             }
             break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                // const SDL_Point mouse_pos = {.x = event.button.x, .y = event.button.y};
-                SDL_Point mouse_pos = {.x = event.button.x, .y = event.button.y};
-                // SDL_PointInRect(&mouse_pos, const SDL_Rect *r);
+                mouse_pos = (SDL_FPoint){.x = event.button.x, .y = event.button.y};
+                check_click(mouse_pos);
+            break;
+            case SDL_EVENT_MOUSE_MOTION:
+                mouse_pos = (SDL_FPoint){.x = event.button.x, .y = event.button.y};
+                check_slide(mouse_pos, event);
             break;
         }
     }
@@ -168,25 +187,79 @@ void load_ui()
         exit(EXIT_FAILURE);
 
     }
+
+     main_src_rect = (SDL_FRect){.x = 0, .y = 0, .w = 282, .h = 400};
+     button_load_dst_rect = (SDL_FRect){.x = 47, .y = 361, .w = 90, .h = 24};
+     button_save_dst_rect = (SDL_FRect){.x = 148, .y = 361, .w = 90, .h = 24};
+     slider1_dst_rect = (SDL_FRect){.x = 41, .y = 23, .w = 15, .h = 11};
+     slider2_dst_rect = (SDL_FRect){.x = 41, .y = 52, .w = 15, .h = 11};
+     slider3_dst_rect = (SDL_FRect){.x = 41, .y = 83, .w = 15, .h = 11};
+     slider4_dst_rect = (SDL_FRect){.x = 41, .y = 145, .w = 15, .h = 11};
+     slider5_dst_rect = (SDL_FRect){.x = 41, .y = 172, .w = 15, .h = 11};
+     close_dst_rect = (SDL_FRect){.x = 245, .y = 8, .w = 19, .h = 17};
 }
 void render_ui()
 {
-    SDL_FRect main_src_rect = {.x = 0, .y = 0, .w = 282, .h = 400};
     SDL_RenderTexture(renderer, main_window_tex, &main_src_rect,NULL);
-    SDL_FRect button_load_dst_rect = {.x = 47, .y = 361, .w = 90, .h = 24};
     SDL_RenderTexture(renderer, button_load_tex, NULL,&button_load_dst_rect);
-    SDL_FRect button_save_dst_rect = {.x = 148, .y = 361, .w = 90, .h = 24};
     SDL_RenderTexture(renderer, button_save_tex, NULL,&button_save_dst_rect);
-    SDL_FRect slider1_dst_rect = {.x = 41, .y = 23, .w = 15, .h = 11};
     SDL_RenderTexture(renderer, button_save_tex, NULL,&slider1_dst_rect);
-    SDL_FRect slider2_dst_rect = {.x = 41, .y = 52, .w = 15, .h = 11};
     SDL_RenderTexture(renderer, button_save_tex, NULL,&slider2_dst_rect);
-    SDL_FRect slider3_dst_rect = {.x = 41, .y = 83, .w = 15, .h = 11};
     SDL_RenderTexture(renderer, button_save_tex, NULL,&slider3_dst_rect);
-    SDL_FRect slider4_dst_rect = {.x = 41, .y = 145, .w = 15, .h = 11};
     SDL_RenderTexture(renderer, button_save_tex, NULL,&slider4_dst_rect);
-    SDL_FRect slider5_dst_rect = {.x = 41, .y = 172, .w = 15, .h = 11};
     SDL_RenderTexture(renderer, button_save_tex, NULL,&slider5_dst_rect);
-    SDL_FRect close_dst_rect = {.x = 245, .y = 8, .w = 19, .h = 17};
     SDL_RenderTexture(renderer, button_save_tex, NULL,&close_dst_rect);
+}
+void check_click(SDL_FPoint mouse_pos)
+{
+    
+    if(SDL_PointInRectFloat(&mouse_pos, &button_load_dst_rect))
+    {
+        SDL_Log("Click su pulsante load");
+    }
+    else if(SDL_PointInRectFloat(&mouse_pos, &button_save_dst_rect))
+    {
+        SDL_Log("Click su pulsante save");
+    }
+    
+    else if(SDL_PointInRectFloat(&mouse_pos, &close_dst_rect))
+    {
+        SDL_Log("Click su pulsante close");
+    }
+    else if(SDL_PointInRectFloat(&mouse_pos, &main_src_rect))
+    {
+        SDL_Log("Click su pulsante main");
+    }
+}
+void check_slide(SDL_FPoint mouse_pos, SDL_Event e)
+{
+    if(SDL_PointInRectFloat(&mouse_pos, &slider1_dst_rect)&& (e.motion.state & SDL_BUTTON_LEFT))
+    {
+        move_slider1();
+    }
+    else if(SDL_PointInRectFloat(&mouse_pos, &slider2_dst_rect))
+    {
+        SDL_Log("Click su pulsante slider2");
+    }
+    else if(SDL_PointInRectFloat(&mouse_pos, &slider3_dst_rect))
+    {
+        SDL_Log("Click su pulsante slider3");
+    }
+    else if(SDL_PointInRectFloat(&mouse_pos, &slider4_dst_rect))
+    {
+        SDL_Log("Click su pulsante slider4");
+    }
+    else if(SDL_PointInRectFloat(&mouse_pos, &slider5_dst_rect))
+    {
+        SDL_Log("Click su pulsante slider5");
+    }
+}
+void move_slider1()
+{
+    if(mouse_pos.x > 41 && mouse_pos.x < 232 )
+    {
+        slider1_dst_rect.x = mouse_pos.x;
+        float value = (slider1_dst_rect.x - 41.0) /(232.0 -41.0);
+        SDL_Log("slider1 x : %.2f, value : %.2f\t mouse x : %.2f", slider1_dst_rect.x, value, mouse_pos.x);
+    }
 }
